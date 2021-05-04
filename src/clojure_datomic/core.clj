@@ -1,6 +1,12 @@
-(ns clojure-datomic.core)
+(ns clojure-datomic.core
+  (:use
+    clojure.pprint)
+  (:require
+    [datomic.api :as d]))
 
-(defn foo
-  "I don't do a whole lot."
-  [x]
-  (println x "Hello, World!"))
+(def db-uri "datomic:dev://localhost:4334/hello")
+
+(pprint (d/create-database db-uri))
+(def conn (d/connect db-uri))
+
+(println "Teste")
