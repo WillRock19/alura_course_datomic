@@ -3,7 +3,7 @@
 A Clojure project designed to make the tests related to Alura's datomic course. Each branch shall refer to a course's
 module, and each module shall have it's own focus.
 
-##Installing Datomic
+## Installing Datomic
 
 To install datomic there are two steps:
 
@@ -11,7 +11,7 @@ To install datomic there are two steps:
     
 * 2. Download Datomic's library (.jar) to work in this code;
     
-###About Step One
+### About Step One
 
 * 1. The first step can be accomplished going into Datomic's website and downloading it the [**Starter** version](https://www.datomic.com/get-datomic.html) 
 
@@ -35,7 +35,7 @@ Starting datomic:free://localhost:4334/<DB-NAME>, storing data in: data ...
 System started datomic:free://localhost:4334/<DB-NAME>, storing data in: data
 ```
 
-###About Step Two
+### About Step Two
 
 * 1. Go back to the [account page](https://my.datomic.com/account);
     
