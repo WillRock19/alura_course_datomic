@@ -21,10 +21,10 @@
 ;O Datomic cria essa estrutura por linha. Cada propriedade sera uma linha diferente dentro da tabela (chamada de DATOM),
 ;identificadas pelo id da entidade. Exemplo:
 
-; id_entidade    nome_atributo          valor
-;     15            nome          Computador Novo
-;     15            slug          /computador_novo
-;     15            preco             3500.10
+; id_entidade    nome_atributo          valor              ID_TRANSACAO         OPERACAO
+;     15            nome          Computador Novo         12527512212122          true
+;     15            slug          /computador_novo        12527512212122          true
+;     15            preco             3500.10             00827512212122          false
 
 ;Para isso, primeiro precisamos definir o schema do banco, a estrutura que nossos registros terao
 
