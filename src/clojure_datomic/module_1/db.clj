@@ -82,3 +82,21 @@
 (defn todos-slugs [snapshot-db]
   (d/q '[:find ?valor-propriedade-slug
          :where [_ :produto/slug ?valor-propriedade-slug]], snapshot-db)) ;O _ simboliza um elemento que não nos interessa porque não será usado
+
+;Agora, e se quisermos fazer um where que analisa multiplas propriedades? Bom, poderiamos fazer como o código abaixo:
+;(defn todos-nomes-e-precos-de-produtos [snapshot-db]
+;  (d/q '[:find ?nome, ?preco
+;         :where [_ :produto/nome  ?nome]
+;                [_ :produto/preco ?preco]], snapshot-db))
+
+;Mas, se fizermos isso, ele ira fazer uma concatenacao do resultado. Primeiro ira buscar todos os nomes e tratar como um vetor ([nomeA, nomeB, nomeC])
+;e depois todos os precos, tratando como outro vetor ([precoA, precoC]). Então, retornará um vetor com a união dos dois, ou seja:
+;[{nomeA, precoA}, {nomeB, precoA}, {nomeC, precoA}, {nomeA, precoC},{nomeB, precoC},  {nomeC, precoC}]
+
+;Claramente, não é o que queremos. Para retornar apenas os precos e seus respectivos nomes, precisamos dizer ao Datomic que queremos os precos e nomes
+;das mesmas entidades retornados juntos. Para isso, usamos:
+
+(defn todos-nomes-e-precos-de-produtos [snapshot-db]
+  (d/q '[:find ?nome, ?preco
+         :where [?produto :produto/nome  ?nome]
+                [?produto :produto/preco ?preco]], snapshot-db))

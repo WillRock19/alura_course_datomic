@@ -42,3 +42,8 @@
 (println "==========================")
 (println "Buscando todos os slugs na base...")
 (pprint (db/todos-slugs (d/db conn)))
+
+(println "")
+(println "==========================")
+(println "Buscando todos os nomes e precos dos produtos...")
+(pprint (db/todos-nomes-e-precos-de-produtos (d/db conn)))
