@@ -65,3 +65,12 @@
 (defn todos-os-ids-produtos [snapshot-db]
   (d/q '[:find ?entidade
          :where [?entidade :produto/nome]], snapshot-db))
+
+(defn todos-produtos-por-slug-brilhante [snapshot-db]
+  (d/q '[:find ?entidade
+         :where [?entidade :produto/slug "/celular-brilhante"]], snapshot-db))
+
+(defn todos-produtos-por-slug [snapshot-db, slug-para-busca]
+  (d/q '[:find ?entidade
+         :in $, ?slug-para-busca                                                            ;O $ é um nome que representa o banco de dados que estamos passando para ser usada na query
+         :where [?entidade :produto/slug ?slug-para-busca]], snapshot-db, slug-para-busca))
