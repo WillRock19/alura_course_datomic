@@ -13,3 +13,15 @@
 (pprint
   (let [computador (model/novo-produto "Computador Novo", "/computador_novo", 2500.10M)] ;M é para tornar o floar um BigDecimal
     (d/transact conn [computador])))
+
+;Fazendo uma query que retorna o id das entidades que possuam :produto/nome como atributos (segunda coluna de uma linha)
+;(d/q '[:find ?entidade_id
+;       :where [?entidade_id :produto/nome]], conn)
+
+;O codigo acima não vai funcionar, porque estamos passando uma conexão. Conexões só servem para inserir dados. Para buscar,
+;precisamos passar uma cópia do banco para que o Datomic possa fazer sua pesquisa. Para isso, podemos usar o d/db, que
+;retorna uma cópia (snapshot) do banco naquele determinado instante do tempo.
+
+(d/q '[:find ?entidade_id
+       :where [?entidade_id :produto/nome]], (d/db conn))
+
