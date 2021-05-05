@@ -61,7 +61,7 @@
 ;  -> 13194139534312 = identificador da transacao
 ;  -> true           = operacao que foi realizada é de insercao
 
-(defn todos-os-ids-produtos [snapshot-db]
+(defn todos-os-ids-produtos-com-nome [snapshot-db]
   (d/q '[:find ?entidade
          :where [?entidade :produto/nome]], snapshot-db))
 
@@ -98,5 +98,24 @@
 
 (defn todos-nomes-e-precos-de-produtos [snapshot-db]
   (d/q '[:find ?nome, ?preco
+         :keys produto/nome, produto/preco                                  ;Define que na saida os dados dentro do find serão exibidos em um mapa com estas keys
          :where [?produto :produto/nome  ?nome]
                 [?produto :produto/preco ?preco]], snapshot-db))
+
+
+;Também podemos especificar quais os dados que queremos retornar de uma entidade SEM definir eles no Where. Para fazer isso,
+;precisamos fazer um *pull* dentro da entidade encontrada pelo Where, e nesse *pull* especificamos quais os atributos
+;dessa entidade que queremos obter. Veja abaixo:
+(defn todos-produtos-com-nome [snapshot-db]
+  (d/q '[:find (pull ?entidade [:produto/nome, :produto/slug, :produto/preco])
+         :where [?entidade :produto/nome  ?nome]], snapshot-db))
+
+;Também podemos usar um *pull* generíco, trazendo TUDO que a entidade possui.
+(defn todos-produtos-com-nome-pull-generico [snapshot-db]
+  (d/q '[:find (pull ?entidade [*])
+         :where [?entidade :produto/nome  ?nome]], snapshot-db))
+
+
+(defn todos-produtos-sem-nome [snapshot-db]
+  (d/q '[:find (pull ?entidade [*])
+         :where [?entidade :produto/nome "N/A"]], snapshot-db))

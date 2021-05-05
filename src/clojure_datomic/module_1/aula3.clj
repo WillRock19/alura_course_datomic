@@ -20,7 +20,7 @@
   (println "")
   (println "==================================================================================")
   (println "Imprimindo Id das entidades inseridas...")
-  (pprint (db/todos-os-ids-produtos (d/db conn))))
+  (pprint (db/todos-os-ids-produtos-com-nome (d/db conn))))
 
 (println "")
 (println "==========================")
@@ -47,3 +47,23 @@
 (println "==========================")
 (println "Buscando todos os nomes e precos dos produtos...")
 (pprint (db/todos-nomes-e-precos-de-produtos (d/db conn)))
+
+(println "")
+(println "==========================")
+(println "Buscando nomes, slurgs e precos das entidades que possuam um atributo :produto/nome...")
+(pprint (db/todos-produtos-com-nome (d/db conn)))
+
+(let [anonimo {:produto/preco 99.99M, :produto/slug "/produto-anonimo"}]
+  (println "")
+  (println "==========================")
+  (println "Inserindo produto sem nome...")
+  (pprint @(d/transact conn [anonimo]))
+  (println "")
+  (println "Buscando todos os de entidades que possuam um atributo :produto/nome...")
+  (pprint (db/todos-produtos-com-nome-pull-generico (d/db conn)))
+  (println "")
+  ;(println "Buscando apenas entidades sem nome...")
+  ;(pprint (db/todos-produtos-sem-nome (d/db conn)))
+
+  )
+
