@@ -61,16 +61,24 @@
 ;  -> 13194139534312 = identificador da transacao
 ;  -> true           = operacao que foi realizada é de insercao
 
-
 (defn todos-os-ids-produtos [snapshot-db]
   (d/q '[:find ?entidade
          :where [?entidade :produto/nome]], snapshot-db))
 
-(defn todos-produtos-por-slug-brilhante [snapshot-db]
+(defn todos-os-ids-produtos-por-slug-brilhante [snapshot-db]
   (d/q '[:find ?entidade
          :where [?entidade :produto/slug "/celular-brilhante"]], snapshot-db))
 
-(defn todos-produtos-por-slug [snapshot-db, slug-para-busca]
+(defn todos-os-ids-produtos-por-slug [snapshot-db, slug-para-busca]
   (d/q '[:find ?entidade
          :in $, ?slug-para-busca                                                            ;O $ é um nome que representa o banco de dados que estamos passando para ser usada na query
          :where [?entidade :produto/slug ?slug-para-busca]], snapshot-db, slug-para-busca))
+
+; entity id = ?entidade = ?e
+(defn todos-slugs-com-ids [snapshot-db]
+  (d/q '[:find ?e, ?valor-propriedade-slug
+         :where [?e :produto/slug ?valor-propriedade-slug]], snapshot-db))
+
+(defn todos-slugs [snapshot-db]
+  (d/q '[:find ?valor-propriedade-slug
+         :where [_ :produto/slug ?valor-propriedade-slug]], snapshot-db)) ;O _ simboliza um elemento que não nos interessa porque não será usado
