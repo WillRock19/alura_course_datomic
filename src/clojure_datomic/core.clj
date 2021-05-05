@@ -1,12 +1,15 @@
 (ns clojure-datomic.core
-  (:use
-    clojure.pprint)
-  (:require
-    [datomic.api :as d]))
+  (:use clojure.pprint)
+  (:require [clojure-datomic.db :as db]
+            [clojure-datomic.model :as model]
+            [datomic.api :as d]))
 
-(def db-uri "datomic:dev://localhost:4334/hello")
+(def conn (db/abre-conexao))
 
-(pprint (d/create-database db-uri))
-(def conn (d/connect db-uri))
+;Transacionando o schema no banco para ensinar a ele o tipo de estrutura que queremos que ele tenha
+(db/cria-schema conn)
 
-(println "Teste")
+;Inserindo primeiro registro no banco
+(pprint
+  (let [computador (model/novo-produto "Computador Novo", "/computador_novo", 2500.10M)] ;M é para tornar o floar um BigDecimal
+    (d/transact conn [computador])))
