@@ -1,4 +1,4 @@
-(ns clojure-datomic.db
+(ns clojure-datomic.module-1.db
   (:require [datomic.api :as d]))
 
 (def db-uri "datomic:dev://localhost:4334/hello")
@@ -14,9 +14,9 @@
 
 ;Entidade: Produto
 ;Propriedades      Tipo     Quantidade      Valor                           ID_TRANSACAO                                                 OPERACAO
-    ;nome          String        1       ==> Computador novo        Valor adicionado pelo Datomic     Valor que informa se inseriu (true) ou removeu (false) o valor do banco
-    ;slug          String        1       ==> /computador_novo       Valor adicionado pelo Datomic     Valor que informa se inseriu (true) ou removeu (false) o valor do banco
-    ;preco      Ponto Flutuan.   1       ==> 3500.10                Valor adicionado pelo Datomic     Valor que informa se inseriu (true) ou removeu (false) o valor do banco
+;nome          String        1       ==> Computador novo        Valor adicionado pelo Datomic     Valor que informa se inseriu (true) ou removeu (false) o valor do banco
+;slug          String        1       ==> /computador_novo       Valor adicionado pelo Datomic     Valor que informa se inseriu (true) ou removeu (false) o valor do banco
+;preco      Ponto Flutuan.   1       ==> 3500.10                Valor adicionado pelo Datomic     Valor que informa se inseriu (true) ou removeu (false) o valor do banco
 
 ;O Datomic cria essa estrutura por linha. Cada propriedade sera uma linha diferente dentro da tabela (chamada de DATOM),
 ;identificadas pelo id da entidade. Exemplo:
@@ -61,3 +61,7 @@
 ;  -> 13194139534312 = identificador da transacao
 ;  -> true           = operacao que foi realizada é de insercao
 
+
+(defn todos-os-ids-produtos [snapshot-db]
+  (d/q '[:find ?entidade
+         :where [?entidade :produto/nome]], snapshot-db))
