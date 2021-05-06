@@ -116,6 +116,3 @@
          :where [?entidade :produto/nome  ?nome]], snapshot-db))
 
 
-(defn todos-produtos-sem-nome [snapshot-db]
-  (d/q '[:find (pull ?entidade [*])
-         :where [?entidade :produto/nome "N/A"]], snapshot-db))
