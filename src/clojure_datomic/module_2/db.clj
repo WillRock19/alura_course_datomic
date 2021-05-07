@@ -47,3 +47,7 @@
 
 (defn produto-por-produto-id [snapshot-db, produto-id]
   (d/pull snapshot-db '[*] [:produto/id produto-id]))
+
+(defn todos-os-ids-produtos-com-nome [snapshot-db]
+  (d/q '[:find ?entidade
+         :where [?entidade :produto/nome]], snapshot-db))
