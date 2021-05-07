@@ -116,3 +116,57 @@
          :where [?entidade :produto/nome  ?nome]], snapshot-db))
 
 
+;Imagine agora que queremos fazer uma query buscando o nome e preco de um produto, mas filtrar por onde o preco é maior do que
+;1000. Para isso, podemos passar um predicado dentro da estrutura do :where que nosso banco recebe. Veja abaixo:
+
+(defn todos-produtos-com-preco-maior-que-mil [snapshot-db]
+  (d/q '[:find ?nome, ?preco
+         :where [?entidade :produto/nome ?nome]
+                [?entidade :produto/preco ?preco]
+                [(> ?preco 1000)]], snapshot-db))
+
+;Poderíamos ir além, entretanto. Poderíamos passar o preco do produto e então exibir apenas aqueles cujo preco for maior
+;do que este número parametrizado. Ficaria algo assim:
+
+(defn todos-produtos-com-preco-maior-que [snapshot-db preco-alvo]
+  (d/q '[:find ?nome, ?preco
+         :in $, ?preco-minimo
+         :where [?entidade :produto/nome ?nome]
+                [?entidade :produto/preco ?preco]
+                [(> ?preco ?preco-minimo)]], snapshot-db preco-alvo))
+
+;Poderíamos, ainda, adicionar outros parâmetros e pesquisas (por exemplo, pesquisar pelos produtos cujo preco é maior que
+;X e a quantidade é maior que 10. Há, entretanto, algo que precisamos considerar aqui: quando pesquisa os registros no
+;banco, o Datomic analisará TODOS os registros para cada condicao definida. No exemplo abaixo...
+;
+;(defn todos-produtos-com-preco-maior-que-alvo-e-quantidade-maior-que-dez [snapshot-db]
+;  (d/q '[:find ?nome, ?preco, ?quantidade
+;         :where [?entidade :produto/nome ?nome]
+;                [?entidade :produto/preco ?preco]
+;                [?entidade :produto/quantidade ?quantidade]
+;                [(> ?preco 1000)]
+;                [(> ?quantidade 10)]], snapshot-db))
+;
+;...iremos primeiro pesquisar TODOS os registros, encontrar os nomes de todos e fazer binding na variável entidade, então
+;pesquisar todos os retornados e fazer binding na variável preco, então pesquisar todos retornados e fazer binding na quantidade,
+;então novamente aplicando a funcao de preco-minimo e, por fim, de novo aplicando a funcao de quantidade. Agora, pense
+;conosco:
+;
+;     1. E se houverem 5000 registros com preco maior do que 1000, mas apenas 5 registros com a quantidde > 10?
+;
+;Nesse caso, iremos pesquisar 5000 registros para depois pegar apenas dez deles. Note que uma condicao é MUITO mais restritiva
+;que a outra quando pensamos na quantidade de registros retornados. Quando pensamos nisso, percebemos que podemos nós próprios
+;otimizar o banco. Para isso, podemos primeiro filtrar pela condicao mais restritiva e, posteriormente, pela menos. Com isso,
+;como o banco vai encadeando as buscas uma atrás da outra, nós conseguiríamos trazer menos registros e buscar pelo restante dos
+;dados de maneira mais rápida.
+;
+;Uma maneira otimizada para a condicao citada acima seria:
+;
+;(defn todos-produtos-com-preco-maior-que-alvo-e-quantidade-maior-que-dez-2 [snapshot-db]
+;  (d/q '[:find ?nome, ?preco, ?quantidade
+;         :where [?entidade :produto/quantidade ?quantidade]
+;                [(> ?quantidade 10)]]
+;                [?entidade :produto/preco ?preco]
+;                [(> ?preco 1000)]
+;                [?entidade :produto/nome ?nome], snapshot-db))
+;

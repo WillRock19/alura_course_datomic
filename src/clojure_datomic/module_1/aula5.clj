@@ -75,3 +75,14 @@
 (println "==========================")
 (println "Registros no banco no instante da segunda transacao...")
 (pprint (db/todos-produtos-com-nome (d/as-of (d/db conn) data-segunda-transacao)))
+
+(println "")
+(println "==========================")
+(println "Buscando dados de produtos com preco maior que mil...")
+(pprint (db/todos-produtos-com-preco-maior-que-mil (d/db conn)))
+
+(let [preco 2340]
+  (println "")
+  (println "==========================")
+  (println "Buscando dados de produtos com preco maior que" preco "...")
+  (pprint (db/todos-produtos-com-preco-maior-que (d/db conn) preco)))
