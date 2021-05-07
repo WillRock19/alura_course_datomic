@@ -28,18 +28,21 @@
 
 ;Para isso, primeiro precisamos definir o schema do banco, a estrutura que nossos registros terao
 
-(def schema [{:db/ident         :produto/nome
-              :db/valueType     :db.type/string
-              :db/cardinality   :db.cardinality/one         ;quantidade dessa propriedade que existirá para cada entidade)
-              :db/doc           "O nome de um produto"},
-             {:db/ident         :produto/slug
-              :db/valueType     :db.type/string
-              :db/cardinality   :db.cardinality/one
-              :db/doc           "O caminho para acessar o produto via http"},
-             {:db/ident         :produto/preco
-              :db/valueType     :db.type/bigdec
-              :db/cardinality   :db.cardinality/one
-              :db/doc           "O preco de um produto com precisão monetária"}])
+(def schema [{:db/ident       :produto/nome
+              :db/valueType   :db.type/string
+              :db/cardinality :db.cardinality/one           ;quantidade dessa propriedade que existirá para cada entidade)
+              :db/doc         "O nome de um produto"},
+             {:db/ident       :produto/slug
+              :db/valueType   :db.type/string
+              :db/cardinality :db.cardinality/one
+              :db/doc         "O caminho para acessar o produto via http"},
+             {:db/ident       :produto/preco
+              :db/valueType   :db.type/bigdec
+              :db/cardinality :db.cardinality/one
+              :db/doc         "O preco de um produto com precisão monetária"},
+             {:db/ident       :produto/palavra-chave
+              :db/valueType   :db.type/string
+              :db/cardinality :db.cardinality/many}])
 
 ;Uma vez criado o schema, precisamos transacionar ele no banco para garantir que ele entenderá o tipo de estrutura que
 ;usaremos.
@@ -71,7 +74,7 @@
 
 (defn todos-os-ids-produtos-por-slug [snapshot-db, slug-para-busca]
   (d/q '[:find ?entidade
-         :in $, ?slug-para-busca                                                            ;O $ é um nome que representa o banco de dados que estamos passando para ser usada na query
+         :in $, ?slug-para-busca                            ;O $ é um nome que representa o banco de dados que estamos passando para ser usada na query
          :where [?entidade :produto/slug ?slug-para-busca]], snapshot-db, slug-para-busca))
 
 ; entity id = ?entidade = ?e
@@ -98,9 +101,9 @@
 
 (defn todos-nomes-e-precos-de-produtos [snapshot-db]
   (d/q '[:find ?nome, ?preco
-         :keys produto/nome, produto/preco                                  ;Define que na saida os dados dentro do find serão exibidos em um mapa com estas keys
-         :where [?produto :produto/nome  ?nome]
-                [?produto :produto/preco ?preco]], snapshot-db))
+         :keys produto/nome, produto/preco                  ;Define que na saida os dados dentro do find serão exibidos em um mapa com estas keys
+         :where [?produto :produto/nome ?nome]
+         [?produto :produto/preco ?preco]], snapshot-db))
 
 
 ;Também podemos especificar quais os dados que queremos retornar de uma entidade SEM definir eles no Where. Para fazer isso,
@@ -108,12 +111,12 @@
 ;dessa entidade que queremos obter. Veja abaixo:
 (defn todos-produtos-com-nome [snapshot-db]
   (d/q '[:find (pull ?entidade [:produto/nome, :produto/slug, :produto/preco])
-         :where [?entidade :produto/nome  ?nome]], snapshot-db))
+         :where [?entidade :produto/nome ?nome]], snapshot-db))
 
 ;Também podemos usar um *pull* generíco, trazendo TUDO que a entidade possui.
 (defn todos-produtos-com-nome-pull-generico [snapshot-db]
   (d/q '[:find (pull ?entidade [*])
-         :where [?entidade :produto/nome  ?nome]], snapshot-db))
+         :where [?entidade :produto/nome ?nome]], snapshot-db))
 
 
 ;Imagine agora que queremos fazer uma query buscando o nome e preco de um produto, mas filtrar por onde o preco é maior do que
@@ -122,8 +125,8 @@
 (defn todos-produtos-com-preco-maior-que-mil [snapshot-db]
   (d/q '[:find ?nome, ?preco
          :where [?entidade :produto/nome ?nome]
-                [?entidade :produto/preco ?preco]
-                [(> ?preco 1000)]], snapshot-db))
+         [?entidade :produto/preco ?preco]
+         [(> ?preco 1000)]], snapshot-db))
 
 ;Poderíamos ir além, entretanto. Poderíamos passar o preco do produto e então exibir apenas aqueles cujo preco for maior
 ;do que este número parametrizado. Ficaria algo assim:
@@ -132,8 +135,8 @@
   (d/q '[:find ?nome, ?preco
          :in $, ?preco-minimo
          :where [?entidade :produto/nome ?nome]
-                [?entidade :produto/preco ?preco]
-                [(> ?preco ?preco-minimo)]], snapshot-db preco-alvo))
+         [?entidade :produto/preco ?preco]
+         [(> ?preco ?preco-minimo)]], snapshot-db preco-alvo))
 
 ;Poderíamos, ainda, adicionar outros parâmetros e pesquisas (por exemplo, pesquisar pelos produtos cujo preco é maior que
 ;X e a quantidade é maior que 10. Há, entretanto, algo que precisamos considerar aqui: quando pesquisa os registros no
@@ -170,3 +173,9 @@
 ;                [(> ?preco 1000)]
 ;                [?entidade :produto/nome ?nome], snapshot-db))
 ;
+
+(defn todos-produtos-por-palavra-chave [snapshot-db, palavra-chave]
+  (d/q '[:find (pull ?entidade [*])
+         :in $ ?palavra-chave-buscada
+         :where [?entidade :produto/palavra-chave ?palavra-chave-buscada]],
+       snapshot-db, palavra-chave))
