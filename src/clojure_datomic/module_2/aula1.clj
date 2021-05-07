@@ -23,10 +23,11 @@
 (defn imprimir-itens-multiline-pprint [items]
   (mapv #(pprint %) items))
 
-(let [computador          (model/novo-produto "Computador Novo", "/computador-novo", 2500.10M)
-      celular             (model/novo-produto "Celular brilhante", "/celular-brilhante", 5000.98M)
-      calculadora         {:produto/nome "Calculadora"}
-      celular-barato      (model/novo-produto "Celular barato", "/celular-barato", 10.19M)
+;Inserindo itens com um uuid gerado previamente e buscando os dados pelo datomic-id
+(let [computador           (model/novo-produto (model/uuid) "Computador Novo", "/computador-novo", 2500.10M)
+      celular              (model/novo-produto (model/uuid) "Celular brilhante", "/celular-brilhante", 5000.98M)
+      calculadora          {:produto/nome "Calculadora"}
+      celular-barato       (model/novo-produto (model/uuid) "Celular barato", "/celular-barato", 10.19M)
       resultado-transacao @(d/transact conn [computador, celular, calculadora, celular-barato])]
   (println "==================================================================================")
   (println "Ids das entidades inseridas:")
@@ -36,12 +37,13 @@
     (println "")
     (println "==================================================================================")
     (println "Imprimindo itens inseridos...")
-    (imprimir-itens-multiline-pprint (db/todos-os-produtos-por-id (d/db conn) ids-entidades))))
+    (imprimir-itens-multiline-pprint (db/todos-os-produtos-por-id-do-datomic (d/db conn) ids-entidades))))
 
 (println "==================================================================================")
 (println "Criando e buscando um único item...")
 
-(let [ipad                (model/novo-produto "Computador Novo", "/computador-novo", 2500.10M)
+;Inserindo um ipad sem UUID previamente estabelecido e buscando pelo datomic-id
+(let [ipad                (model/novo-produto "Ipad", "/ipad", 8900.10M)
       resultado-transacao @(d/transact conn [ipad])]
   (println "")
   (println "Ids das entidades inseridas:")
@@ -50,4 +52,16 @@
     (println "")
     (println "==================================================================================")
     (println "Imprimindo item inserido...")
-    (pprint (db/produto-por-id (d/db conn) (first ids-entidades)))))
+    (pprint (db/produto-por-datomic-id (d/db conn) (first ids-entidades)))))
+
+;Inserindo um teclado com um UUID previamente conhecido e buscando por ele
+(let [produto-id          (model/uuid)
+      teclado-mecanico    (model/novo-produto produto-id "Teclado mecanico", "/teclado-mecanico-1", 756.10M)
+      resultado-transacao @(d/transact conn [teclado-mecanico])]
+  (println "")
+  (println "==================================================================================")
+  (println "Ids do teclado mecanico:")
+  (println "-> Datomic-id  :" (-> resultado-transacao :tempids vals first))
+  (println "-> Produto UUID:" produto-id)
+  (println "Imprimindo dados do teclado mecanico...")
+  (pprint (db/produto-por-produto-id (d/db conn) produto-id)))
