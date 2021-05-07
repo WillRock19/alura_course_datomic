@@ -1,6 +1,3 @@
-(ns clojure-datomic.core)
-
-(defn foo
-  "I don't do a whole lot."
-  [x]
-  (println x "Hello, World!"))
+(ns clojure-datomic.core
+  (:use clojure.pprint)
+  (:require [datomic.api :as d]))
