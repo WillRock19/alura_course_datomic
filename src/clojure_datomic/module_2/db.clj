@@ -28,7 +28,22 @@
              {:db/ident       :produto/id
               :db/valueType   :db.type/uuid
               :db/cardinality :db.cardinality/one
-              :db/unique      :db.unique/identity }])
+              :db/unique      :db.unique/identity
+              :db/doc         "O identificador único de um produto"},
+             {:db/ident       :produto/categoria
+              :db/valueType   :db.type/ref
+              :db/cardinality :db.cardinality/one
+              :db/doc         "A categoria do produto"}
+
+             {:db/ident       :categoria/nome
+              :db/valueType   :db.type/string
+              :db/cardinality :db.cardinality/one
+              :db/doc         "O nome de uma categoria"},
+             {:db/ident       :categoria/id
+              :db/valueType   :db.type/uuid
+              :db/cardinality :db.cardinality/one
+              :db/unique      :db.unique/identity
+              :db/doc         "O identificador único de uma categoria"}])
 
 (defn cria-schema [conn]
   (d/transact conn schema))
@@ -51,3 +66,7 @@
 (defn todos-os-ids-produtos-com-nome [snapshot-db]
   (d/q '[:find ?entidade
          :where [?entidade :produto/nome]], snapshot-db))
+
+(defn todas-as-categorias [snapshot-db]
+  (d/q '[:find  (pull ?categoria [*])
+         :where [?categoria :categoria/id]], snapshot-db))
