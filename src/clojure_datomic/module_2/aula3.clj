@@ -14,13 +14,19 @@
 (defn- imprimir-itens-multiline-pprint [items]
        (mapv #(pprint %) items))
 
+(defn- buscar-e-imprimir-produtos [produtos]
+       (map (fn[produto]
+               (println "")
+               (imprimir-itens-multiline-pprint (db/produto-por-produto-id (d/db conn) (:produto/id produto))))
+            produtos))
+
 (def eletronicos (model/nova-categoria "Eletrônicos"))
 (def esportes (model/nova-categoria "Esportes"))
 
 (println "=======================================================")
 (println "")
 (println "Cadastrando categorias...")
-(pprint @(d/transact conn [eletronicos, esportes]))
+(pprint (db/adiciona-categorias! conn [eletronicos, esportes]))
 
 (println "=======================================================")
 (println "")
@@ -32,7 +38,7 @@
       celular (model/novo-produto (model/uuid) "Celular brilhante", "/celular-brilhante", 5000.98M)
       celular-barato (model/novo-produto (model/uuid) "Celular barato", "/celular-barato", 10.19M)
       bola-futebol (model/novo-produto (model/uuid) "Bola de futebol", "/bola-futebol", 97.89M)
-      resultado-transacao @(d/transact conn [bola-futebol, computador, celular, celular-barato])]
+      resultado-transacao (db/adiciona-produtos! conn [bola-futebol, computador, celular, celular-barato])]
      (println "==================================================================================")
      (println "Db/ids das entidades inseridas:")
      (println "")
@@ -45,29 +51,9 @@
      (println "")
      (println "==================================================================================")
      (println "Adicionando categorias aos registros cadastrados...")
-     (pprint (d/transact conn [[:db/add
-                                [:produto/id (:produto/id computador)]          ;Obtém o id do computador
-                                :produto/categoria                              ;Nome da propriedade que será adicionada
-                                [:categoria/id (:categoria/id eletronicos)]]])) ;Referencia ao registro que será associado à propriedade anterior
-     (pprint (d/transact conn [[:db/add
-                                [:produto/id (:produto/id celular)]
-                                :produto/categoria
-                                [:categoria/id (:categoria/id eletronicos)]]]))
-     (pprint (d/transact conn [[:db/add
-                                [:produto/id (:produto/id celular-barato)]
-                                :produto/categoria
-                                [:categoria/id (:categoria/id eletronicos)]]]))
-     (pprint (d/transact conn [[:db/add
-                                [:produto/id (:produto/id bola-futebol)]
-                                :produto/categoria
-                                [:categoria/id (:categoria/id esportes)]]]))
+     (pprint (db/atribui-categorias conn [computador, celular, celular-barato] eletronicos))
+     (pprint (db/atribui-categorias conn [bola-futebol] esportes))
      (println "")
      (println "==================================================================================")
      (println "Verificando se produtos possuem as categorias...")
-     (imprimir-itens-multiline-pprint (db/produto-por-produto-id (d/db conn) (:produto/id computador)))
-     (imprimir-itens-multiline-pprint (db/produto-por-produto-id (d/db conn) (:produto/id celular)))
-     (imprimir-itens-multiline-pprint (db/produto-por-produto-id (d/db conn) (:produto/id celular-barato)))
-     (imprimir-itens-multiline-pprint (db/produto-por-produto-id (d/db conn) (:produto/id bola-futebol))))
-
-
-
+     (buscar-e-imprimir-produtos [computador, celular, celular-barato, bola-futebol]))
