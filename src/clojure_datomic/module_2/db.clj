@@ -88,3 +88,25 @@
 
 (defn adiciona-categorias! [connection, categorias]
       (d/transact connection categorias))
+
+(defn todos-nomes-produtos-com-suas-categorias [snapshot-db]
+      (d/q '[:find ?nome, ?nome-da-categoria
+             :keys produto, categoria
+             :where [?produto :produto/nome ?nome]
+                    [?produto :produto/categoria ?categoria]
+                    [?categoria :categoria/nome ?nome-da-categoria]],
+           snapshot-db))
+
+(defn todos-nomes-produtos-sem-categorias [snapshot-db]
+      (d/q '[:find ?nome
+             :keys produto
+             :where [?produto :produto/nome ?nome]
+                    [(missing? $ ?produto :produto/categoria)]],
+           snapshot-db))
+
+(defn todos-nomes-produtos-da-categoria [snapshot-db, nome-categoria]
+      (d/q '[:find (pull ?produto [:produto/nome :produto/slug { :produto/categoria [*] }])
+             :in $, ?nome
+             :where [?categoria :categoria/nome ?nome]
+                    [?produto :produto/categoria ?categoria]],
+           snapshot-db, nome-categoria))
