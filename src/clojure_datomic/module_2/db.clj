@@ -125,3 +125,36 @@
          :in $ ?nome
          :where [?categoria :categoria/nome ?nome]]
        snapshot-db, nome-categoria))
+
+
+;O código abaixo funciona, mas retorna um caso inesperado. Caso tenhamos cinco produtos, sendo que dois deles possuem
+;o mesmo preco, o count retornará apenas quatro. Por quê? Porque Datomic trabalha com conjuntos de valores, e em um
+;conjunto matemático valores iguais não são considerados.
+;
+  ;(defn maior-e-menor-precos-junto-da-quantidade-de-precos [snapshot-db]
+  ;  (d/q '[:find  (min ?preco) (max ?preco) (count ?preco)
+  ;         :keys  preco-minimo, preco-maximo, total-de-precos
+  ;         :where [_ :produto/preco ?preco]]
+  ;       snapshot-db))
+;
+;Se quisermos considerar valores repetidos no count, precisamos informar para ele algum outro atributo que ele possa
+;usar para saber que, mesmo que os precos sejam iguais, eles não devem ser considerados valores iguais no retorno.
+;Para isso, podemos usar o identificador do atributo da entidade dentro do banco (ou seja, se o preco for o mesmo mas
+;pertencer a diferentes entidades, deve ser considerado no count)
+
+(defn maior-e-menor-precos-junto-da-quantidade-de-precos [snapshot-db]
+  (d/q '[:find  (min ?preco) (max ?preco) (count ?preco)
+         :keys  preco-minimo, preco-maximo, total-de-precos
+         :with ?produto                                        ;Essa linha faz isso
+         :where [?produto :produto/preco ?preco]]
+       snapshot-db))
+
+
+(defn maior-e-menor-precos-junto-da-quantidade-de-precos-por-categoria [snapshot-db]
+  (d/q '[:find  ?nome-categoria (min ?preco) (max ?preco) (count ?preco)
+         :keys  categoria, preco-minimo, preco-maximo, total-de-precos
+         :with ?produto
+         :where [?produto :produto/preco ?preco]
+                [?produto :produto/categoria ?categoria]
+                [?categoria :categoria/nome ?nome-categoria]]
+       snapshot-db))

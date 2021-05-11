@@ -15,12 +15,6 @@
 (defn- imprimir-itens-multiline-pprint [items]
        (mapv #(pprint %) items))
 
-(defn- buscar-e-imprimir-produtos [produtos]
-       (mapv (fn[produto]
-               (println "")
-               (imprimir-itens-multiline-pprint (db/produto-por-produto-id (d/db conn) (:produto/id produto))))
-            produtos))
-
 (def eletronicos (model/nova-categoria "Eletrônicos"))
 (def esportes (model/nova-categoria "Esportes"))
 
