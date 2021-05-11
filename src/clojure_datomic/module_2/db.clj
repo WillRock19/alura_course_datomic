@@ -158,3 +158,38 @@
                 [?produto :produto/categoria ?categoria]
                 [?categoria :categoria/nome ?nome-categoria]]
        snapshot-db))
+
+;Podemos encadear queries para retornar valores mais específicos. Abaixo, por exemplo, encadeio duas queries:
+;a primeira tenta obter o maior preco de todos e o segundo busca os dados do produto com o maior preco. Ela
+;funciona, mas tem um problema: estamos buscando no banco duas vezes. Se o banco for local, não há problema; se
+;ele for em outro servidor, são duas requisicoes (e o delay de cada uma) para ter a resposta final. Dificil.
+
+  ;(defn produtos-mais-caro [snapshot-db]
+  ;  (let [maior-preco (ffirst (d/q '[:find (max ?preco)
+  ;                                   :where [_ :produto/preco ?preco]]
+  ;                                 snapshot-db))]
+  ;    (d/q '[:find (pull ?produto [*])
+  ;           :in $, ?preco
+  ;           :where [?produto :produto/preco ?preco]]
+  ;         snapshot-db, maior-preco)))
+
+;Uma alternativa seria fazer as duas queries em uma só, deixando para o banco a tarefa de otimizar as requisicoes
+;e decidir como fazer acontecer. Abaixo, um exemplo onde fazemos as duas queries em uma. Note que o valor retornado
+;pela query em (q) será armazenado dentro de ?preco, e ?preco será repassado para a segunda linha como um parametro
+;do where. Note ainda que, dentro de (q), usamos o banco de dados como $, j[a que ele é passado como parametro na
+;query pai, definida em (d/q):
+(defn produtos-mais-caros [snapshot-db]
+  (d/q '[:find  (pull ?produto [*])
+         :where [(q '[:find (max ?preco)
+                      :where [_ :produto/preco ?preco]]
+                    ,$) [[?preco]]]
+                [?produto :produto/preco ?preco]]
+       , snapshot-db))
+
+(defn produtos-mais-baratos [snapshot-db]
+  (d/q '[:find  (pull ?produto [*])
+         :where [(q '[:find (min ?preco)
+                      :where [_ :produto/preco ?preco]]
+                    ,$) [[?preco]]]
+         [?produto :produto/preco ?preco]]
+       , snapshot-db))

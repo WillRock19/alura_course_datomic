@@ -1,4 +1,4 @@
-(ns clojure-datomic.module-2.aula5
+(ns clojure-datomic.module-2.aula6
   (:use clojure.pprint)
   (:require [clojure-datomic.module-2.db :as db]
             [clojure-datomic.module-2.model :as model]
@@ -26,8 +26,6 @@
 (println "Cadastrando categorias...")
 (pprint (db/adiciona-categorias! conn [eletronicos, esportes, jogos]))
 
-;Podemos também inserir a categoria diretamente no nosso mapa, fazendo uso do relacionamento já definido
-;nos Schemas do Datomic )veja o jogo-de-xadrez).
 (let [computador      (model/novo-produto (model/uuid) "Computador Novo", "/computador-novo", 2500.10M)
       celular         (model/novo-produto (model/uuid) "Celular brilhante", "/celular-brilhante", 5000.98M)
       celular-barato  (model/novo-produto (model/uuid) "Celular barato", "/celular-barato", 10.19M)
@@ -61,13 +59,4 @@
   (println "==================================================================================")
   (println "Imprimindo dados agregados dos produtos por categoria...")
   (imprimir-itens-multiline-pprint (db/maior-e-menor-precos-junto-da-quantidade-de-precos-por-categoria (d/db conn)))
-  (println "")
-  (println "")
-  (println "==================================================================================")
-  (println "Imprimindo produto com maior preco...")
-  (imprimir-itens-multiline-pprint (db/produtos-mais-caros (d/db conn)))
-  (println "")
-  (println "==================================================================================")
-  (println "Imprimindo produto com menor preco...")
-  (imprimir-itens-multiline-pprint (db/produtos-mais-baratos (d/db conn)))
   (println ""))
