@@ -104,9 +104,24 @@
                     [(missing? $ ?produto :produto/categoria)]],
            snapshot-db))
 
+;Aqui, fazemos uma busca dos dados do produto e da categoria através de um foward navigation (buscamos o produto, e a
+;partir dele buscamos os dados associados a ele - no caso, a categoria). Basicamente: varremos os dados uma vez para
+;achar os produtos, e então varremos as categorias, varremos os produtos e então varremos mais uma vez as categorias
+;para saber quais estão relacionadas.
 (defn todos-nomes-produtos-da-categoria [snapshot-db, nome-categoria]
       (d/q '[:find (pull ?produto [:produto/nome :produto/slug { :produto/categoria [*] }])
              :in $, ?nome
              :where [?categoria :categoria/nome ?nome]
                     [?produto :produto/categoria ?categoria]],
            snapshot-db, nome-categoria))
+
+
+;Aqui, buscamos os dados do produtos e da categoria através de um um backward navigation (buscamos uma categoria e a
+;partir dela verificamos os produtos associados a ela). Basicamente: varremos os dados da categoria e então varremos
+;outra vez para buscar os produtos associados a ela. A vantagem de usá-lo aqui é que varremos os dados menos vezes e
+;conseguimos descobrir quem referencia nossas categorias de uma maneira mais direta.
+(defn todos-nomes-produtos-da-categoria-backwards [snapshot-db, nome-categoria]
+  (d/q '[:find (pull ?categoria [:categoria/nome { :produto/_categoria [:produto/nome :produto/slug] }])
+         :in $ ?nome
+         :where [?categoria :categoria/nome ?nome]]
+       snapshot-db, nome-categoria))
