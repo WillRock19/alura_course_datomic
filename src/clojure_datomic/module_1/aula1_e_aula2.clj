@@ -1,6 +1,6 @@
 (ns clojure-datomic.module-1.aula1-e-aula2
   (:use clojure.pprint)
-  (:require [clojure-datomic.module-1.dbdb :as db]
+  (:require [clojure-datomic.module-2.dbdb :as db]
             [clojure-datomic.module-1.model :as model]
             [datomic.api :as d]))
 
