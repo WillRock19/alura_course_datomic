@@ -46,7 +46,7 @@ System started datomic:free://localhost:4334/<DB-NAME>, storing data in: data
 
 ```cmdline
 {#"my\.datomic\.com" {:username "williamporto19@gmail.com"
-                      :password "029d796c-1692-4fad-ad17-9c664ea9ada4"}}
+                      :password "029d796c-****-4fad-****-************"}}
 ```
 
 * 4. Install maven in your machine;
