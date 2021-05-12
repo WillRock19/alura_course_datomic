@@ -21,6 +21,8 @@
 (def esportes (model/nova-categoria "Esportes"))
 (def jogos (model/nova-categoria "Jogos"))
 
+(def endereco-ip-de-exemplo "200.219.877.555")
+
 (println "=======================================================")
 (println "")
 (println "Cadastrando categorias...")
@@ -36,11 +38,12 @@
                       :produto/preco  10.19M,
                       :produto/categoria { :categoria/id   (:categoria/id   jogos),
                                           :categoria/nome  (:categoria/nome jogos) }}
-      resultado-transacao (db/adiciona-produtos! conn [bola-futebol, computador, celular, celular-barato, jogo-de-xadrez])]
+      resultado-transacao1 (db/adiciona-produtos! conn [celular, celular-barato])
+      resultado-transacao2 (db/adiciona-produtos! conn [bola-futebol, computador, jogo-de-xadrez] endereco-ip-de-exemplo)]
   (println "==================================================================================")
   (println "Db/ids das entidades inseridas:")
   (println "")
-  (let [ids-entidades (mapv #(second %) (-> @resultado-transacao :tempids))]
+  (let [ids-entidades (mapv #(second %) (-> (conj @resultado-transacao1 @resultado-transacao2) :tempids))]
     (imprimir-itens-multiline-println ids-entidades)
     (println "")
     (println "==================================================================================")
@@ -68,4 +71,8 @@
   (println "==================================================================================")
   (println "Imprimindo produto com menor preco...")
   (imprimir-itens-multiline-pprint (db/produtos-mais-baratos (d/db conn)))
+  (println "")
+  (println "==================================================================================")
+  (println "Imprimindo todos os produtos do IP" endereco-ip-de-exemplo  "...")
+  (imprimir-itens-multiline-pprint (db/todos-produtos-do-ip (d/db conn) endereco-ip-de-exemplo))
   (println ""))

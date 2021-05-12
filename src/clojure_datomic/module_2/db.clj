@@ -51,7 +51,13 @@
               :db/valueType   :db.type/uuid
               :db/cardinality :db.cardinality/one
               :db/unique      :db.unique/identity
-              :db/doc         "O identificador único de uma categoria"}])
+              :db/doc         "O identificador único de uma categoria"}
+
+              ;Schema para armazenar dados do IP que gerou uma transacao
+             {:db/ident       :tx-data/ip                     ;Usamos o padrão tx-data quando queremos armazenar os dados de uma transacao
+              :db/valueType   :db.type/string
+              :db/cardinality :db.cardinality/one
+              :db/doc         "O endereco IP que realizou uma determinada transacao"}])
 
 (defn cria-schema [conn]
       (d/transact conn schema))
@@ -83,8 +89,12 @@
       (let [a-transacionar (comandos-db-adds-que-atribui-categoria-ao-produto categoria produtos)]
            (d/transact connection a-transacionar)))
 
-(defn adiciona-produtos! [connection, produtos]
-      (d/transact connection produtos))
+(defn adiciona-produtos!
+  ([connection, produtos]
+   (d/transact connection produtos))
+  ([connection, produtos, endereco-ip]
+   (let [db-add-ip [:db/add "datomic.tx" :tx-data/ip endereco-ip]]        ;Aqui estamos criando um db/add associado à transacao que será efetuada (comando datomix.tx), no attributo :tx-data/ip com o valor endereco-ip
+     (d/transact connection (conj produtos db-add-ip)))))
 
 (defn adiciona-categorias! [connection, categorias]
       (d/transact connection categorias))
@@ -193,3 +203,10 @@
                     ,$) [[?preco]]]
          [?produto :produto/preco ?preco]]
        , snapshot-db))
+
+(defn todos-produtos-do-ip [snapshot-db, endereco-ip]
+  (d/q '[:find  (pull ?produto [*])
+         :in $, ?ip-buscado
+         :where [?transacao :tx-data/ip ?ip-buscado]
+                [?produto :produto/id _ ?transacao]]
+       snapshot-db, endereco-ip))
