@@ -1,5 +1,7 @@
 (ns clojure-datomic.module-3.db
-    (:require [datomic.api :as d]))
+  (:require [clojure-datomic.module-3.model :as model]
+            [datomic.api :as d]
+            [schema.core :as s]))
 
 (def db-uri "datomic:dev://localhost:4334/ecommerce")
 
@@ -72,14 +74,14 @@
             (d/pull snapshot-db '[*] datomic-id))]
     (mapv obter-produto-por-id ids)))
 
-(defn adiciona-produtos!
-  ([connection, produtos]
+(s/defn adiciona-produtos!
+  ([connection, produtos :- [model/Produto]]
    (d/transact connection produtos))
-  ([connection, produtos, endereco-ip]
+  ([connection, produtos :- [model/Produto], endereco-ip :- s/Str]
    (let [db-add-ip [:db/add "datomic.tx" :tx-data/ip endereco-ip]]        ;Aqui estamos criando um db/add associado à transacao que será efetuada (comando datomix.tx), no attributo :tx-data/ip com o valor endereco-ip
      (d/transact connection (conj produtos db-add-ip)))))
 
-(defn adiciona-categorias! [connection, categorias]
+(s/defn adiciona-categorias! [connection, categorias :- [model/Categoria]]
       (d/transact connection categorias))
 
 (defn atribui-categorias [connection produtos categoria]
