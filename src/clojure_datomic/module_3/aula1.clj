@@ -62,4 +62,7 @@
   (println "==================================================================================")
   (println "Todas as categorias...")
   (aux/imprimir-itens-multiline-pprint (db/todas-categorias (d/db conn)))
+  (println "")
+  (println "Todos os produtos e suas categorias...")
+  (aux/imprimir-itens-multiline-pprint (db/todos-produtos (d/db conn)))
   (println ""))

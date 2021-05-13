@@ -1,5 +1,6 @@
 (ns clojure-datomic.module-3.db
   (:require [clojure-datomic.module-3.model :as model]
+            [clojure.walk :as walk]
             [datomic.api :as d]
             [schema.core :as s]))
 
@@ -13,8 +14,13 @@
                []
                produtos))
 
+(defn- dissoc-datomic-id [entidade]
+  (if (map? entidade)
+    (dissoc entidade :db/id)
+    entidade))
+
 (defn- registros-datomic->entidades [registros-datomic]
-  (map #(dissoc % :db/id) registros-datomic))
+  (walk/prewalk dissoc-datomic-id registros-datomic)) ;Prewalk vai navegar por cada nó do meu mapa (entidade) e aplica a funcao que eu passei para ele
 
 (defn abre-conexao []
       (d/create-database db-uri)
@@ -192,4 +198,21 @@
   [snapshot-db]
   (registros-datomic->entidades (d/q '[:find [(pull ?categoria [*]) ...] ;Por padrão, quando colocamos a query do find dentro do colchetes ele vai retornar APENAS UM dos registros (qual? Sei la; pode ser primeiro, quinto, vigésimo, tanto faz). Para deixar claro que queremos TODOS, precisamos colocar as reticencias.
                                      :where [?categoria :categoria/id _]],
+                                     snapshot-db)))
+
+;Podemos também buscar o produto, mas dará erro. Por quê? Por que ele trará também os dados da categoria, mas  único dado que
+;ele tentará trazer é o id... e nós sabemos que o produto possui uma categoria completa.
+
+;(s/defn todos-produtos :- [model/Produto]
+;  [snapshot-db]
+;  (registros-datomic->entidades (d/q '[:find [(pull ?produto [*]) ...]
+;                                       :where [?produto :produto/id _]],
+;                                     snapshot-db)))
+;
+;Para resolver isso, precisamos deixar claro que queremos buscar os dados da categoria também. Veja:
+
+(s/defn todos-produtos :- [model/Produto]
+  [snapshot-db]
+  (registros-datomic->entidades (d/q '[:find [(pull ?produto [* {:produto/categoria [*]}]) ...]
+                                       :where [?produto :produto/id _]],
                                      snapshot-db)))
