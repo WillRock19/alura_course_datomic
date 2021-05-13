@@ -58,4 +58,8 @@
   (println "Adicionando categorias aos registros cadastrados...")
   (pprint @(db/atribui-categorias conn [computador, celular-barato] eletronicos))
   (pprint @(db/atribui-categorias conn [bola-futebol] esportes))
+  (println "")
+  (println "==================================================================================")
+  (println "Todas as categorias...")
+  (aux/imprimir-itens-multiline-pprint (db/todas-categorias (d/db conn)))
   (println ""))

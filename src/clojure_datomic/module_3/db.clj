@@ -13,6 +13,9 @@
                []
                produtos))
 
+(defn- registros-datomic->entidades [registros-datomic]
+  (map #(dissoc % :db/id) registros-datomic))
+
 (defn abre-conexao []
       (d/create-database db-uri)
       (d/connect db-uri))
@@ -154,3 +157,39 @@
          :where [?transacao :tx-data/ip ?ip-buscado]
                 [?produto :produto/id _ ?transacao]]
        snapshot-db, endereco-ip))
+
+;Abaixo, vamos tentar definir o tipo de retorno da funcao. Ele dá erro.
+;(s/defn todas-categorias :- [model/Categoria]
+;  [snapshot-db]
+;  (d/q '[:find  (pull ?categoria [*])
+;         :where [?categoria :categoria/id _]],
+;       snapshot-db))
+
+;Quando estamos buscando no datomic, ele constrói o retorno de uma forma bem específica.
+;Veja abaixo:
+;
+; *:find nome, preco* é retornado como
+;
+;[
+; [nome1, preco1]
+; [nome2, preco2]
+;]
+;
+;Em outras palavras: eu não retorno uma lista de mapas, mas uma lista de listas com os dados desejados.
+;Se quisermos fazer ele retornar os dados fora dessas sequencias mais internas, precisamos escrever assim:
+
+;(s/defn todas-categorias :- [model/Categoria]
+;  [snapshot-db]
+;  (d/q '[:find  [(pull ?categoria [*]) ...]  ;Por padrão, quando colocamos a query do find dentro do colchetes ele vai retornar APENAS UM dos registros (qual? Sei la; pode ser primeiro, quinto, vigésimo, tanto faz). Para deixar claro que queremos TODOS, precisamos colocar as reticencias.
+;         :where [?categoria :categoria/id _]],
+;       snapshot-db))
+
+;O problema é que o código acima AINDA quebra, mas por outro motivo: ele retorna um registro com uma propriedade
+;:db/id, e nosso schema não espera isso. Então, para lidar com isso, iremos criar uma funcao auxiliar que vai
+;mapear os registros do datomic e remover a propridade :db/id
+
+(s/defn todas-categorias :- [model/Categoria]
+  [snapshot-db]
+  (registros-datomic->entidades (d/q '[:find [(pull ?categoria [*]) ...] ;Por padrão, quando colocamos a query do find dentro do colchetes ele vai retornar APENAS UM dos registros (qual? Sei la; pode ser primeiro, quinto, vigésimo, tanto faz). Para deixar claro que queremos TODOS, precisamos colocar as reticencias.
+                                     :where [?categoria :categoria/id _]],
+                                     snapshot-db)))
