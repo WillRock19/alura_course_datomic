@@ -75,13 +75,8 @@
 (defn produto-por-datomic-id [snapshot-db, datomic-id]
       (d/pull snapshot-db '[*] datomic-id))
 
-(defn produto-por-produto-id [snapshot-db, produto-id]
+(defn produto-por-id [snapshot-db, produto-id]
       (d/pull snapshot-db '[*] [:produto/id produto-id]))
-
-(defn todos-os-produtos-por-id-do-datomic [snapshot-db, ids]
-  (letfn [(obter-produto-por-id [datomic-id]
-            (d/pull snapshot-db '[*] datomic-id))]
-    (mapv obter-produto-por-id ids)))
 
 (s/defn adiciona-produtos!
   ([connection, produtos :- [model/Produto]]
@@ -96,66 +91,6 @@
 (defn atribui-categorias [connection produtos categoria]
   (let [a-transacionar (comandos-db-adds-que-atribui-categoria-ao-produto categoria produtos)]
     (d/transact connection a-transacionar)))
-
-(defn todos-nomes-produtos-com-suas-categorias [snapshot-db]
-      (d/q '[:find ?nome, ?nome-da-categoria
-             :keys produto, categoria
-             :where [?produto :produto/nome ?nome]
-                    [?produto :produto/categoria ?categoria]
-                    [?categoria :categoria/nome ?nome-da-categoria]],
-           snapshot-db))
-
-(defn todos-nomes-produtos-sem-categorias [snapshot-db]
-      (d/q '[:find ?nome
-             :keys produto
-             :where [?produto :produto/nome ?nome]
-                    [(missing? $ ?produto :produto/categoria)]],
-           snapshot-db))
-
-(defn todos-nomes-produtos-da-categoria [snapshot-db, nome-categoria]
-      (d/q '[:find (pull ?produto [:produto/nome :produto/slug { :produto/categoria [*] }])
-             :in $, ?nome
-             :where [?categoria :categoria/nome ?nome]
-                    [?produto :produto/categoria ?categoria]],
-           snapshot-db, nome-categoria))
-
-(defn todos-nomes-produtos-da-categoria-backwards [snapshot-db, nome-categoria]
-  (d/q '[:find (pull ?categoria [:categoria/nome { :produto/_categoria [:produto/nome :produto/slug] }])
-         :in $ ?nome
-         :where [?categoria :categoria/nome ?nome]]
-       snapshot-db, nome-categoria))
-
-(defn maior-e-menor-precos-junto-da-quantidade-de-precos [snapshot-db]
-  (d/q '[:find  (min ?preco) (max ?preco) (count ?preco)
-         :keys  preco-minimo, preco-maximo, total-de-precos
-         :with ?produto                                        ;Essa linha faz isso
-         :where [?produto :produto/preco ?preco]]
-       snapshot-db))
-
-(defn maior-e-menor-precos-junto-da-quantidade-de-precos-por-categoria [snapshot-db]
-  (d/q '[:find  ?nome-categoria (min ?preco) (max ?preco) (count ?preco)
-         :keys  categoria, preco-minimo, preco-maximo, total-de-precos
-         :with ?produto
-         :where [?produto :produto/preco ?preco]
-                [?produto :produto/categoria ?categoria]
-                [?categoria :categoria/nome ?nome-categoria]]
-       snapshot-db))
-
-(defn produtos-mais-caros [snapshot-db]
-  (d/q '[:find  (pull ?produto [*])
-         :where [(q '[:find (max ?preco)
-                      :where [_ :produto/preco ?preco]]
-                    ,$) [[?preco]]]
-                [?produto :produto/preco ?preco]]
-       , snapshot-db))
-
-(defn produtos-mais-baratos [snapshot-db]
-  (d/q '[:find  (pull ?produto [*])
-         :where [(q '[:find (min ?preco)
-                      :where [_ :produto/preco ?preco]]
-                    ,$) [[?preco]]]
-         [?produto :produto/preco ?preco]]
-       , snapshot-db))
 
 (defn todos-produtos-do-ip [snapshot-db, endereco-ip]
   (d/q '[:find  (pull ?produto [*])
