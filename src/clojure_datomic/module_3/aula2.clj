@@ -1,4 +1,4 @@
-(ns clojure-datomic.module-3.aula1
+(ns clojure-datomic.module-3.aula2
   (:use clojure.pprint)
   (:require [clojure-datomic.module-3.aux-functions :as aux]
             [clojure-datomic.module-3.db :as db]
@@ -41,23 +41,60 @@
   (println "")
   (println "==================================================================================")
   (println "Vamos validar os produtos antes de salvá-los?")
+  (println "")
   (products-have-valid-schema [computador, celular, celular-barato, bola-futebol, jogo-de-xadrez])
-  (let [resultado-transacao1 (db/adiciona-ou-atualiza-produtos! conn [celular, celular-barato])
-        resultado-transacao2 (db/adiciona-ou-atualiza-produtos! conn [bola-futebol, computador, jogo-de-xadrez] endereco-ip-de-exemplo)
-        ids-entidades (mapv #(second %) (-> (conj @resultado-transacao1 @resultado-transacao2) :tempids))]
-    (println "")
-    (println "==================================================================================")
-    (println "Produtos salvos. Os Ids são...")
-    (aux/imprimir-itens-multiline-println ids-entidades)
-    (println ""))
+  (println "==================================================================================")
+  (println "Salvando produtos...")
+  (db/adiciona-ou-atualiza-produtos! conn [celular, celular-barato])
+  (db/adiciona-ou-atualiza-produtos! conn [bola-futebol, computador, jogo-de-xadrez] endereco-ip-de-exemplo)
   (println "==================================================================================")
   (println "Adicionando categorias aos registros cadastrados...")
   (pprint @(db/atribui-categorias conn [computador, celular-barato] eletronicos))
   (pprint @(db/atribui-categorias conn [bola-futebol] esportes))
   (println "")
   (println "==================================================================================")
-  (println "Todas as categorias...")
-  (aux/imprimir-itens-multiline-pprint (db/todas-categorias (d/db conn)))
-  (println "")
   (println "Todos os produtos e suas categorias...")
-  (aux/imprimir-itens-multiline-pprint (db/todos-produtos (d/db conn))))
+  (aux/imprimir-itens-multiline-pprint (db/todos-produtos (d/db conn)))
+  (println ""))
+
+(println "==================================================================================")
+(println "==================================================================================")
+(println "=====================INSERINDO/ATUALIZANDO PRODUTOS EM TRANSACOES==================")
+(println "==================================================================================")
+(println "==================================================================================")
+(println "")
+
+(def dama (model/novo-produto (model/uuid) "Jogo de dama", "/dama", 19.89M))
+(db/adiciona-ou-atualiza-produtos! conn [dama])
+
+(defn atualiza-preco []
+  (println "Atualizando preco...")
+  (let [produto (db/produto-por-id (d/db conn) (:produto/id dama))
+        produto (assoc produto :produto/preco 29.10M)]
+    (db/adiciona-ou-atualiza-produtos! conn [produto])
+    (println "... preco atualizado :)")
+    produto))
+
+(defn atualiza-slug []
+  (println "Atualizando slug...")
+  (let [produto (db/produto-por-id (d/db conn) (:produto/id dama))]
+    (Thread/sleep 3000)
+    (let [produto (assoc produto :produto/slug "/novo-endpoint-dama")]
+      (db/adiciona-ou-atualiza-produtos! conn [produto])
+      (println "... slug atualizado! ^^")
+      produto)))
+
+(defn roda-transacoes [tx]
+  (let [futuros (mapv #(future (%)) tx)]
+    (println "")
+    (println "O que nossas futures fizeram?")
+    (pprint (map deref futuros))
+    (println "")
+    (pprint "Resultado final:")
+    (pprint (db/produto-por-id (d/db conn) (:produto/id dama)))))
+
+(roda-transacoes [atualiza-preco, atualiza-slug])
+
+
+
+

@@ -75,17 +75,18 @@
 (defn produto-por-datomic-id [snapshot-db, datomic-id]
       (d/pull snapshot-db '[*] datomic-id))
 
-(defn produto-por-id [snapshot-db, produto-id]
-      (d/pull snapshot-db '[*] [:produto/id produto-id]))
+(s/defn produto-por-id :- model/Produto
+  [snapshot-db, produto-id]
+  (registros-datomic->entidades (d/pull snapshot-db '[*] [:produto/id produto-id])))
 
-(s/defn adiciona-produtos!
+(s/defn adiciona-ou-atualiza-produtos!
   ([connection, produtos :- [model/Produto]]
    (d/transact connection produtos))
   ([connection, produtos :- [model/Produto], endereco-ip :- s/Str]
    (let [db-add-ip [:db/add "datomic.tx" :tx-data/ip endereco-ip]]        ;Aqui estamos criando um db/add associado à transacao que será efetuada (comando datomix.tx), no attributo :tx-data/ip com o valor endereco-ip
      (d/transact connection (conj produtos db-add-ip)))))
 
-(s/defn adiciona-categorias! [connection, categorias :- [model/Categoria]]
+(s/defn adiciona-ou-atualiza-categorias! [connection, categorias :- [model/Categoria]]
       (d/transact connection categorias))
 
 (defn atribui-categorias [connection produtos categoria]
