@@ -95,6 +95,42 @@
 
 (roda-transacoes [atualiza-preco, atualiza-slug])
 
+;Como pode ver, quando rodamos as funcoes de atualizar preco e atualizar slug em uma transacao, corremos o risco
+;de apenas um dos dados serem atualizados. Por que? Por que na hora em que recebe o modelo o datomic atualiza uma
+;das entidades naquele atributo, mas na hora que recebe o outro modelo, como estamos trabalhando com imutabilidade,
+;o atributo do simbolo ainda está com o valor pré-atualizacao, então ele atualiza NOVAMENTE aquela chave para o valor
+;antigo.
+;
+;Stings, doesn`t?
+;
+;Para lidar com isso, podemos utilizar uma capacidade do próprio datomic passando apenas as propriedades que queremos
+;alterar e deixando ele lidar com o resto...
 
+(defn atualiza-preco-novo []
+  (println "Atualizando preco...")
+  (let [produto {:produto/id (:produto/id dama), :produto/preco 29.10M}]
+    (db/adiciona-ou-atualiza-produtos! conn [produto])
+    (println "... preco atualizado :)")
+    produto))
+
+(defn atualiza-slug-novo []
+  (println "Atualizando slug...")
+  (Thread/sleep 3000)
+  (let [produto {:produto/id (:produto/id dama), :produto/slug "/novo-endpoint-dama"}]
+    (db/adiciona-ou-atualiza-produtos! conn [produto])
+    (println "... slug atualizado! ^^")
+    produto))
+
+;Mas aí teremos um novo problema: nosso schema não permite receber um produto sem as demais propriedades obrigatórias.
+;Sucks, doesn`t?
+;
+;Uma forma de resolver esse problema seria tornar todas as propriedades do Produto como opcionais, exceto pelo Id. Isso
+;resolve uma das tretas, mas cria outra: agora nosso produto não precisaria ter nenhuma das propriedades que ele precisa
+;ter... além disso, comecamos a deixar que as chamadas de funcoes saibam sobre a implementacao dos nossos dados (por
+;exemplo, no código acima estamos passando informacoes da nossa implementacao. E se ela mudar no futuro? E aí? Precisamos
+;ir em todos os lugares editar? Ruim, né? Bom, no curso não foi dada nenhuma solucao perfeita ainda (eles foram para o lado
+;de tornar as propriedades do produto opcionais, mas eu não farei isso neste código por motivos de *não sou obrigado*).
+
+(roda-transacoes [atualiza-preco-novo, atualiza-slug-novo])
 
 
