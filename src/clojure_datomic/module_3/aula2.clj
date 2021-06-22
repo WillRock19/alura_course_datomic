@@ -130,6 +130,10 @@
 ;exemplo, no código acima estamos passando informacoes da nossa implementacao. E se ela mudar no futuro? E aí? Precisamos
 ;ir em todos os lugares editar? Ruim, né? Bom, no curso não foi dada nenhuma solucao perfeita ainda (eles foram para o lado
 ;de tornar as propriedades do produto opcionais, mas eu não farei isso neste código por motivos de *não sou obrigado*).
+;
+;Após alguns meses matutando, não achei nenhuma outra solucao. No curso, inclusive, eles mantém com as propriedades do
+;produto sendo opcionais. Por motivos de *quero terminar o curso e manter anotado tudo que estudei*, seguirei a abordagem
+;sugerida. E que Deus tenha piedade da minha alma.
 
 (roda-transacoes [atualiza-preco-novo, atualiza-slug-novo])
 
