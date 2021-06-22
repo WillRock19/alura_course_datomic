@@ -79,10 +79,31 @@
   [snapshot-db, produto-id]
   (registros-datomic->entidades (d/pull snapshot-db '[*] [:produto/id produto-id])))
 
-(s/defn produto-por-id-com-categoria :- model/Produto
+
+;Melhoramos um pouco  funcao abaixo. Quando buscávamos um produto que não existia ela estourava um erro de schema, o que
+;não é claro o suficiente para sabermos o que diabos está acontecendo. Para lidar com isso mudamos o schema para retornar
+;um maybe de produto, ou seja, para poder retornar ou um produto, ou nil no lugar. Aí, adicionamos a lógica necessária
+;à funcao.
+;
+;IMPORTANTE: maybe só deveria ser usada em retornos de funcao e só quando faca MUITO sentido, já que ela pode ocasionar
+;os erros de NullPointerException.
+(s/defn produto-por-id-com-categoria :- (s/maybe model/Produto)
   [snapshot-db, produto-id]
-  (registros-datomic->entidades
-    (d/pull snapshot-db '[* {:produto/categoria [*]}] [:produto/id produto-id])))
+  (let [registro-do-banco (d/pull snapshot-db '[* {:produto/categoria [*]}] [:produto/id produto-id])
+        entidade-pronta   (registros-datomic->entidades registro-do-banco)]
+    (if (:produto/id entidade-pronta)
+      entidade-pronta
+      nil)))
+
+;Podemos também fazer uma versão dessa funcao que, ao invés de retornar nil, estoura um erro caso o produto não exista
+(s/defn produto-por-id-com-categoria! :- (s/maybe model/Produto)
+  [snapshot-db, produto-id]
+  (let [produto (produto-por-id-com-categoria snapshot-db produto-id)]
+    (when (not (nil? produto))
+      produto
+      (throw (ex-info "Produto não existe na base de dados!"
+                      {:type :register-not-found
+                       :register-id produto-id})))))
 
 (s/defn adiciona-ou-atualiza-produtos!
   ([connection, produtos :- [model/Produto]]

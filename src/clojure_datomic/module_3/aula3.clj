@@ -80,8 +80,9 @@
   ; Nas aulas, optamos por ir pela primeira opcao. Para tanto, criei a funcao abaixo:
   (pprint (db/produto-por-id-com-categoria (d/db conn) (:produto/id primeiro-produto)))
 
-
-  )
+  ;Abaixo, uma versão que estoura exception se o produto não existir:
+  (pprint (db/produto-por-id-com-categoria! (d/db conn) (:produto/id primeiro-produto)))
+  (pprint (db/produto-por-id-com-categoria! (d/db conn) (model/uuid))))
 
 
 
