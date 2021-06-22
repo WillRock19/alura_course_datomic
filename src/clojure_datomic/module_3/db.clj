@@ -79,6 +79,11 @@
   [snapshot-db, produto-id]
   (registros-datomic->entidades (d/pull snapshot-db '[*] [:produto/id produto-id])))
 
+(s/defn produto-por-id-com-categoria :- model/Produto
+  [snapshot-db, produto-id]
+  (registros-datomic->entidades
+    (d/pull snapshot-db '[* {:produto/categoria [*]}] [:produto/id produto-id])))
+
 (s/defn adiciona-ou-atualiza-produtos!
   ([connection, produtos :- [model/Produto]]
    (d/transact connection produtos))
