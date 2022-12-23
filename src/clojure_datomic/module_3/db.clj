@@ -1,4 +1,5 @@
 (ns clojure-datomic.module-3.db
+  (:use clojure.pprint)
   (:require [clojure-datomic.module-3.model :as model]
             [clojure.walk :as walk]
             [datomic.api :as d]
@@ -7,11 +8,17 @@
 (def db-uri "datomic:dev://localhost:4334/ecommerce")
 
 (defn- comandos-db-adds-que-atribui-categoria-ao-produto [categoria, produtos]
-       (reduce (fn [db-adds produto] (conj db-adds [:db/add
-                                                    [:produto/id (:produto/id produto)] ;obtém o id do produto ao qual adicionaremos a propriedade
-                                                    :produto/categoria ;nome da propriedade que vamos adicionar
-                                                    [:categoria/id (:categoria/id categoria)]])) ;obtem o id da categoria que será adicionada como valor da propriedade
-               []
+  (println "Categoria: ")
+  (pprint categoria)
+
+       (reduce (fn [db-adds produto]
+                 (println "Produto: ")
+                 (pprint produto)
+                 (conj db-adds [:db/add
+                    [:produto/id (:produto/id produto)] ;obtém o id do produto ao qual adicionaremos a propriedade
+                    :produto/categoria ;nome da propriedade que vamos adicionar
+                    [:categoria/id (:categoria/id categoria)]])) ;obtem o id da categoria que será adicionada como valor da propriedade
+                  []
                produtos))
 
 (defn- dissoc-datomic-id [entidade]
@@ -53,6 +60,9 @@
               :db/valueType   :db.type/ref
               :db/cardinality :db.cardinality/one
               :db/doc         "A categoria do produto"}
+             {:db/ident       :produto/estoque
+              :db/valueType   :db.type/long
+              :db/cardinality :db.cardinality/one}
 
              {:db/ident       :categoria/nome
               :db/valueType   :db.type/string
